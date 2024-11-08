@@ -16,11 +16,13 @@ app.use((req, res, next) => {
 });
 
 app.use("/userInformation", require("./routes/userInformation"));
+app.use("/tuition", require("./routes/tuitionInformation"));
+app.use("/transactions", require("./routes/transactionInformation"));
 
 (async () => {
   try {
     //sync models
-    await models.sync({ force: false });
+    await dbConn.sync({ alter: true });
     console.log(`Attempting to run server on port ${process.env.PORT}`);
 
     app.listen(process.env.PORT, () => {

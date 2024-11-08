@@ -27,12 +27,6 @@ const UserIdentification = dbConn.define('user_identification',{
     }
 })
 
-UserIdentification.hasOne(UserInformation,{
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-    foreingKey: 'user_id'
-})
 
-UserInformation.belongsTo(UserIdentification)
 
 module.exports = UserIdentification

@@ -4,6 +4,7 @@ const AuthenticateUser = require('./AuthenticateUser');
 const StudentTuitionDetails = require('./StudentTuitionDetails');
 const TuitionPaymentTransactions = require('./TuitionPaymentTransactions');
 
+// associations
 UserInformation.hasOne(UserIdentification,{
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

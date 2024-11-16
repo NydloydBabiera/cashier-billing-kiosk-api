@@ -8,6 +8,7 @@ const sequilize = new Sequelize(
     process.env.PGUSER,
     process.env.PGPASSWORD,
     {
+        port: process.env.PGPORT,
         host: process.env.HOST,
         dialect: 'postgres'
     }

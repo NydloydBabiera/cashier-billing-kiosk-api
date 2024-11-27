@@ -22,6 +22,11 @@ const TuitionPaymentTransactions = dbConn.define('tuition_payment_transaction',{
         type: Sequelize.FLOAT,
         allowNull: false,
         unique: false
+    },
+    isPromiPayment:{
+        type: Sequelize.BOOLEAN,
+        allowNull: true,
+        unique: false
     }
 })
 

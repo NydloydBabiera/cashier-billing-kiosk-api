@@ -27,6 +27,16 @@ const TuitionPaymentTransactions = dbConn.define('tuition_payment_transaction',{
         type: Sequelize.BOOLEAN,
         allowNull: true,
         unique: false
+    },
+    exam_type:{
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: false
+    },
+    amount_due:{
+        type: Sequelize.FLOAT,
+        allowNull: false,
+        unique: false
     }
 })
 

@@ -11,7 +11,7 @@ const UserIdentification = dbConn.define('user_identification',{
         autoIncrement: true
     },
     id_number:{
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: false,
         uique: true
     },

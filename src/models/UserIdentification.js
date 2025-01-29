@@ -21,7 +21,7 @@ const UserIdentification = dbConn.define('user_identification',{
         unique: true
     },
     user_type:{
-        type: Sequelize.ENUM('ADMIN', 'STUDENT', 'TREASURY'),
+        type: Sequelize.ENUM('ADMIN', 'STUDENT', 'TREASURY','CASHIER'),
         allowNull: false,
         unique: false
     }

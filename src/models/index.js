@@ -3,6 +3,7 @@ const UserIdentification = require('./UserIdentification')
 const AuthenticateUser = require('./AuthenticateUser');
 const StudentTuitionDetails = require('./StudentTuitionDetails');
 const TuitionPaymentTransactions = require('./TuitionPaymentTransactions');
+const ExamTerm = require('./ExamTerm');
 
 // associations
 UserInformation.hasOne(UserIdentification,{
@@ -62,5 +63,6 @@ AuthenticateUser.belongsTo(UserIdentification, {
  })
 module.exports ={
     UserInformation,
-    UserIdentification
+    UserIdentification,
+    ExamTerm
 }

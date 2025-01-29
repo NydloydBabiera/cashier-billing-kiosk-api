@@ -1,5 +1,5 @@
 const { where, Op, sequelize, Sequelize } = require("sequelize");
-const { UserIdentification } = require("../models");
+const { UserIdentification, ExamTerm } = require("../models");
 const AuthenticateUser = require("../models/AuthenticateUser");
 const UserInformation = require("../models/UserInformation");
 const dbConn = require("../data-access/dbConnection");
@@ -36,7 +36,6 @@ const addNewUser = async (req, res) => {
     rfid_id: rfidNumber,
     user_type: userType,
   };
-  console.log(userInformation);
 
   const userName = userInformation.firstName
     .split(" ")
@@ -45,9 +44,13 @@ const addNewUser = async (req, res) => {
     .concat(userInformation.lastName);
 
   const authCredentials = {
-    user_name: userName,
-    user_password: userName,
+    user_name: userName.toLowerCase(),
+    user_password: userName.toLowerCase(),
   };
+
+  console.log(userInformation);
+  console.log(userIdentification);
+  console.log(authCredentials);
 
   try {
     const addUserInformation = await UserInformation.create(userInformation, {
@@ -112,4 +115,86 @@ const getUserPerRFID = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, addNewUser, getUserPerRFID };
+const authenticateUser = async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    await AuthenticateUser.findOne({
+      where: {
+        user_name: { [Sequelize.Op.eq]: username },
+        user_password: { [Sequelize.Op.eq]: password },
+      },
+      include: [
+        {
+          model: UserIdentification,
+          as: "identification",
+        },
+      ],
+    })
+      .then((auth) => {
+        if (username === password) {
+          auth.dataValues.isFirstLogin = true;
+        }
+        return res.json(auth);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  } catch (error) {
+    return res.json(error);
+  }
+};
+
+const updatePassword = async (req, res) => {
+  const { newPassword } = req.body;
+  const authenticate_user_id = req.params.id;
+  try {
+    await AuthenticateUser.update(
+      {
+        user_password: newPassword,
+      },
+      {
+        where: {
+          authenticate_user_id: authenticate_user_id,
+        },
+      }
+    )
+      .then((auth) => {
+        return res.json(auth);
+      })
+      .catch((error) => {
+        res.json(error);
+        console.error(error);
+      });
+  } catch (error) {
+    res.json(error);
+  }
+};
+
+const setExamTerm = async (req, res) => {
+  const { term } = req.body;
+  try {
+    await ExamTerm.update(
+      {
+        exam_term: term,
+      },
+      {
+        where: {
+          id: 1,
+        },
+      }
+    ).then((term) => {
+      return res.json(term);
+    });
+  } catch (error) {
+    res.json(error);
+  }
+};
+
+module.exports = {
+  getAllUsers,
+  addNewUser,
+  getUserPerRFID,
+  authenticateUser,
+  updatePassword,
+  setExamTerm
+};

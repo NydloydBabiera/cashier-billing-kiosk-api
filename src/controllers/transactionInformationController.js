@@ -3,13 +3,20 @@ const dbConn = require("../data-access/dbConnection");
 const { UserIdentification } = require("../models");
 const StudentTuitionDetails = require("../models/StudentTuitionDetails");
 const TuitionPaymentTransactions = require("../models/TuitionPaymentTransactions");
-const dotenv = require('dotenv')
+const dotenv = require("dotenv");
 
-dotenv.config()
+dotenv.config();
 
 const addTuitionPayment = async (req, res) => {
   const createPayment = await dbConn.transaction();
-  const { amt, student_tuition_id, isPromiPayment, amount_due } = req.body;
+  const {
+    amt,
+    student_tuition_id,
+    isPromiPayment,
+    amount_due,
+    remarks,
+    isApproved,
+  } = req.body;
   const transCnt = (await TuitionPaymentTransactions.count()) + 1;
   const transactionDetails = {
     transaction_code: `DOC${transCnt
@@ -20,7 +27,9 @@ const addTuitionPayment = async (req, res) => {
     student_tuition_id,
     exam_type: process.env.EXAM_TYPE,
     isPromiPayment,
-    amount_due
+    amount_due,
+    remarks,
+    isApproved,
   };
 
   console.log(transactionDetails);
@@ -105,9 +114,35 @@ const getPaymentPerStudent = async (req, res) => {
       res.json(error);
     });
 };
-
+const promisoryApproval = async (req, res) => {
+  const { isApproved, remarks } = req.body;
+  const transaction_id = req.params.id;
+  try {
+    await TuitionPaymentTransactions.update(
+      {
+        isApproved,
+        remarks,
+      },
+      {
+        where: {
+          tuition_payment_transaction_id: transaction_id,
+        },
+      }
+    )
+      .then((apporove) => {
+        return res.json(apporove);
+      })
+      .catch((error) => {
+        res.json(error);
+        console.error(error);
+      });
+  } catch (error) {
+    res.json(err);
+  }
+};
 module.exports = {
   addTuitionPayment,
   getAllTransactions,
   getPaymentPerStudent,
+  promisoryApproval,
 };

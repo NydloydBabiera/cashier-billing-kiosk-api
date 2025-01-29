@@ -16,7 +16,7 @@ const AuthenticateUser = dbConn.define('authenticate_user',{
     user_password:{
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true
+        unique: false
     },
 })
 

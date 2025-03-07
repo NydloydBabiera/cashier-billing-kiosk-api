@@ -11,7 +11,10 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
+    "escpos": "^3.0.0-alpha.6",
+    "escpos-usb": "^3.0.0-alpha.4",
     "express": "^4.21.1",
     "http": "^0.0.1-security",
     "nodemon": "^3.1.7",
@@ -19,6 +22,7 @@
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.5",
     "serialport": "^12.0.0",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "usb": "^1.9.2"
   }
 }

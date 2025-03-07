@@ -17,6 +17,7 @@ app.use(cors({
 app.use("/userInformation", require("./routes/userInformation"));
 app.use("/tuition", require("./routes/tuitionInformation"));
 app.use("/transactions", require("./routes/transactionInformation"));
+app.use("/exam", require("./routes/examTerm"));
 
   
 (async () => {

@@ -4,6 +4,7 @@ const { UserIdentification, UserInformation } = require("../models");
 const StudentTuitionDetails = require("../models/StudentTuitionDetails");
 const TuitionPaymentTransactions = require("../models/TuitionPaymentTransactions");
 const dotenv = require("dotenv");
+const examTerm = require("./examTermController")
 
 dotenv.config();
 const addStudentTuition = async (req, res) => {
@@ -25,6 +26,8 @@ const addStudentTuition = async (req, res) => {
 
 const tuitionDetails = async (req, res) => {
   const rfid_id = req.params.id;
+  const currentTerm = await examTerm.getExamTerm()
+
   await StudentTuitionDetails.findOne({
     include: [
       {
@@ -76,7 +79,7 @@ const tuitionDetails = async (req, res) => {
         //   return acc;
         // }, {})),
         amt_balance:
-          computeBalance(users.tuition_amt) -
+          computeBalance(users.tuition_amt, currentTerm.dataValues.exam_term) -
           Object.values(
             users.tuition?.reduce((acc, curr) => {
               // Check if the exam_type already exists in the accumulator
@@ -175,9 +178,9 @@ const getPromiPayment = async (req, res) => {
 
 
 
-const computeBalance = (total_tuition) => {
+const computeBalance = (total_tuition, currentTerm) => {
   console.log(total_tuition);
-  switch (process.env.EXAM_TYPE) {
+  switch (currentTerm) {
     case "PRE-MIDTERM":
       return total_tuition * 0.25;
 
@@ -199,5 +202,5 @@ module.exports = {
   tuitionDetails,
   getAllStudentTuition,
   getPromiPayment,
-  
+
 };

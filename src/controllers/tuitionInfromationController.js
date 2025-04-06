@@ -7,15 +7,34 @@ const dotenv = require("dotenv");
 const examTerm = require("./examTermController")
 
 dotenv.config();
+
 const addStudentTuition = async (req, res) => {
   const createTuition = await dbConn.transaction();
   const tuitionDetails = req.body;
+  let addTution
   try {
-    const addTution = await StudentTuitionDetails.create(tuitionDetails, {
-      transaction: createTuition,
-    });
+    const getStudentTuition = await StudentTuitionDetails.findOne({
+      where: {
+        user_identification_id: {
+          [Sequelize.Op.eq]: tuitionDetails.user_identification_id,
+        }
+      }
+    })
+    console.log('getStudentTuition:', getStudentTuition)
+    if (getStudentTuition !== null) {
+      addTution = await StudentTuitionDetails.update(
+        { tuition_amt: Number(getStudentTuition.dataValues.tuition_amt) + Number(tuitionDetails.tuition_amt) },
+        { where: { user_identification_id: tuitionDetails.user_identification_id } }
+      )
+    } else {
+      addTution = await StudentTuitionDetails.create(tuitionDetails, {
+        transaction: createTuition,
+      });
+      await createTuition.commit();
+    }
 
-    await createTuition.commit();
+
+
 
     return res.status(200).json(addTution);
   } catch (error) {
@@ -53,6 +72,7 @@ const tuitionDetails = async (req, res) => {
     ],
   })
     .then((users) => {
+      console.log(users.tuition_amt)
       const details = {
         tuition_id: users.student_tuition_details_id,
         firstName: users.student.information.firstName,
@@ -78,23 +98,22 @@ const tuitionDetails = async (req, res) => {
         //   console.log(acc)
         //   return acc;
         // }, {})),
-        amt_balance:
-          computeBalance(users.tuition_amt, currentTerm.dataValues.exam_term) -
-          Object.values(
-            users.tuition?.reduce((acc, curr) => {
-              // Check if the exam_type already exists in the accumulator
-              if (acc[curr.exam_type]) {
-                acc[curr.exam_type] += curr.amt_paid; // Add amt_paid to the existing sum for that exam type
-              } else {
-                acc[curr.exam_type] = curr.amt_paid; // Initialize the sum for this exam type
-              }
-              return acc;
-            }, {})
-          ).reduce((sum, amtPaid) => sum + amtPaid, 0), // Sum all the values (amt_paid) in the accumulator) ,
-        // amt_balance: ((computeBalance(users.tuition_amt)) - users.tuition?.reduce(
-        //   (acc, curr) => acc + curr.amt_paid,
-        //   0
-        // )),
+        amt_balance: computeBalance(users.tuition_amt -
+          users.tuition?.reduce((acc, curr) => acc + curr.amt_paid, 0), currentTerm.dataValues.exam_term),
+        // computeBalance(users.tuition_amt, currentTerm.dataValues.exam_term) -
+        // Object.values(
+        //   users.tuition?.reduce((acc, curr) => {
+        //     // Check if the exam_type already exists in the accumulator
+        //     if (acc[curr.exam_type]) {
+        //       acc[curr.exam_type] += curr.amt_paid; // Add amt_paid to the existing sum for that exam type
+        //     } else {
+        //       acc[curr.exam_type] = curr.amt_paid; // Initialize the sum for this exam type
+        //     }
+        //     console.log('acc:',acc)
+        //     return acc;
+        //   }, {})
+        // ).reduce((sum, amtPaid) => sum + amtPaid, 0), // Sum all the values (amt_paid) in the accumulator) ,
+
         paymentsCnt: users.tuition?.length,
       };
 
@@ -179,19 +198,20 @@ const getPromiPayment = async (req, res) => {
 
 
 const computeBalance = (total_tuition, currentTerm) => {
-  console.log(total_tuition);
+
   switch (currentTerm) {
     case "PRE-MIDTERM":
-      return total_tuition * 0.25;
+      console.log(total_tuition * 0.25);
+      return total_tuition / 4;
 
     case "MIDTERM":
-      return total_tuition * 0.5;
+      return total_tuition / 3;
 
     case "PRE-FINAL":
-      return total_tuition * 0.75;
+      return total_tuition / 2;
 
     case "FINAL":
-      return total_tuition * 1;
+      return total_tuition / 1;
     default:
       break;
   }

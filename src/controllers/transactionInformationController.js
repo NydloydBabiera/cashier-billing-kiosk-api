@@ -220,7 +220,15 @@ const printReceipt = async (req, res) => {
           .join("").toUpperCase(),
       exam_term: details.exam_type,
       due: details.amount_due,
+      // due: details.amount_due >= 1000 ?  new Intl.NumberFormat("en-PH", {
+      //             style: "currency",
+      //             currency: "PHP",
+      //           }).format(details.amount_due) : details.amount_due,
       amt_paid: details.amt_paid,
+      // amt_paid: details.amt_paid >= 1000 ? new Intl.NumberFormat("en-PH", {
+      //             style: "currency",
+      //             currency: "PHP",
+      //           }).format(details.amt_paid) : details.amt_paid,
       id_no: details.tuition.student.id_number,
       promisory: details.isPromiPayment,
       pmtDate: format(new Date(details.createdAt), "MMM dd,yyyy hh:mm:ss")
@@ -302,6 +310,95 @@ const printReceipt = async (req, res) => {
     });
 }
 
+const printReceiptv2 = (data) => {
+  console.log(data)
+  // Replace 'COM3' with your actual port (use '/dev/ttyUSB0' for Linux)
+const port = new SerialPort({
+  path: 'COM7',
+  baudRate: 9600
+});
+
+// ESC/POS commands
+const ESC = '\x1B';
+const GS = '\x1D';
+
+const printData = `
+${ESC}@                              // Initialize printer
+${ESC}a\x01                         // Center align
+Notre Dame of Tacurong College
+RFID-BACS System
+Payment Receipt
+-----------------------------
+${ESC}a\x00                         // Left align
+Student Details:
+Name:${data.name}
+Exam:${data.exam_term}
+${ESC}a\x00  
+Payment Details:                          // left align
+Due: P${new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+}).format(data.due)};
+Amount paid: P${new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+}).format(data.amt_paid)}
+Promi:${data.promisory ? 'YES' : 'NO'}
+Date:${data.pmtDate}
+${ESC}a\x01                         // Center align
+${data.promisory ? 'NOTE: THIS IS A PROMISSORY \n PAYMENT PLEASE PROCEED TO THE \n TREASURY to process your \n promissory form.' : ''}
+-----------------------------
+${data.promisory ? `${ESC}d\x04` : `` }
+`;
+
+const printPermit = `                          // Initialize printer
+${ESC}a\x01                         // Center align
+Notre Dame of Tacurong College
+RFID-BACS System
+Payment Receipt
+-----------------------------
+PERMIT TO TAKE:
+${GS}!\x11
+${data.exam_term} 
+EXAMINATION
+${GS}!\x00
+-----------------------------
+${ESC}d\x04                         // Feed 4 lines
+${GS}V\x00                          // Full cut
+`
+
+port.write(printData.replace(/\/\/.*$/gm, ''), 'binary', (err) => {
+  if (err) {
+    port.close()
+    return console.error('Failed to print:', err.message);
+  }
+  
+  console.log('Print job sent!');
+});
+
+if(!data.promisory){
+  port.write(printPermit.replace(/\/\/.*$/gm, ''), 'binary', (err) => {
+    if (err) {
+      port.close()
+      return console.error('Failed to print:', err.message);
+    }
+    console.log('Print permit job sent!');
+  });
+}
+setTimeout(() => {
+  port.close(closeErr => {
+    if (closeErr) {
+      return console.error('❌ Error closing port:', closeErr.message);
+    }
+    console.log('🔌 Port closed successfully.');
+  });
+}, 1000); // 
+}
+
+
+const printPermitv2 = (data) => {
+
+}
 
 const printPermit = (data) => {
   const device = new USB(); // Auto-detects USB printer

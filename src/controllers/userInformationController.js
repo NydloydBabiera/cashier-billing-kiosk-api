@@ -3,6 +3,7 @@ const { UserIdentification, ExamTerm } = require("../models");
 const AuthenticateUser = require("../models/AuthenticateUser");
 const UserInformation = require("../models/UserInformation");
 const dbConn = require("../data-access/dbConnection");
+const TuitionPaymentTransactions = require("../models/TuitionPaymentTransactions");
 const getAllUsers = async (req, res, next) => {
   await UserInformation.findAll({
     include: [
@@ -189,6 +190,14 @@ const setExamTerm = async (req, res) => {
     res.json(error);
   }
 };
+
+const deleteUser = async (req, res) => {
+  const userId = req.params.id;
+ 
+  // await TuitionPaymentTransactions.destroy({
+  //   where 
+  // })
+}
 
 module.exports = {
   getAllUsers,

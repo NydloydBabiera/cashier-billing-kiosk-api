@@ -7,7 +7,9 @@ const dotenv = require("dotenv");
 const { format } = require("date-fns")
 const escpos = require('escpos');
 const USB = require('escpos-usb');
-
+// const SerialPort = require('escpos-serialport');
+// escpos.SerialPort = require('escpos-serialport');
+// escpos.USB = require('escpos-usb');
 const examTerm = require("./examTermController")
 
 dotenv.config();
@@ -226,14 +228,14 @@ const printReceipt = async (req, res) => {
 
     console.log(data)
     const device = new USB(); // Auto-detects USB printer
-
+    // const device = new escpos.SerialPort('COM9'); 
     const printer = new escpos.Printer(device);
     device.open((err) => {
       if (err) {
         console.error('Failed to open serial port:', err);
         return;
       }
-// DIRI MAG CHANGE SANG RECEIPT DETAILS
+      // DIRI MAG CHANGE SANG RECEIPT DETAILS
       printer
         .align('ct')
         .size(2, 2)
@@ -252,7 +254,7 @@ const printReceipt = async (req, res) => {
         .text(`Due:${new Intl.NumberFormat("en-PH", {
           style: "currency",
           currency: "PHP",
-        }).format(data.amt_paid)}`)
+        }).format(data.due)}`)
         .text(`Amount paid:${new Intl.NumberFormat("en-PH", {
           style: "currency",
           currency: "PHP",
@@ -263,8 +265,32 @@ const printReceipt = async (req, res) => {
         .text('')
         .text(`${data.promisory ? 'NOTE: THIS IS A PROMISSORY \n PAYMENT PLEASE PROCEED TO THE \n TREASURY to process your \n promissory form.' : ''}`)
         .text('----------------------------')
-        .cut()
-        .close();
+        .text('')
+        .text('')
+        .close(() => {
+          // First try normal close
+          device.close((err) => {
+            if (err) {
+              console.error('Failed to close serial port:', err);
+
+              // ✅ If close fails, force reset USB device to cancel pending requests
+              console.warn('Trying to reset USB device to force-close...');
+              const rawDevice = device.device;
+              rawDevice.reset((resetErr) => {
+                if (resetErr) {
+                  console.error('Failed to reset USB device:', resetErr);
+                  console.log('Force exiting process to release USB...');
+                  process.exit(1); // hard kill (last resort)
+                } else {
+                  console.log('USB device reset successfully (forced stop).');
+                }
+              });
+
+            } else {
+              console.log('Serial port closed successfully.');
+            }
+          });
+        });
     });
     if (!data.promisory)
       printPermit(data)

@@ -144,11 +144,22 @@ const getAllStudentTuition = async (req, res) => {
                 model: TuitionPaymentTransactions,
                 as: "tuition",
                 required: false,
+                
               },
             ],
+         
           },
         ],
       },
+    ],
+    order: [
+      [
+        { model: UserIdentification, as: "information" },
+        { model: StudentTuitionDetails, as: "student" },
+        { model: TuitionPaymentTransactions, as: "tuition" },
+        "tuition_payment_transaction_id",
+        "DESC",
+      ],
     ],
   })
     .then((users) => {
